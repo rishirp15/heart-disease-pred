@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+{% block title %}CardioPredict - Predict{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% if result %}
+    <div class="result-container">
+        <div class="result-page-header {{ result.class }}">
+            <h2>Prediction Results</h2>
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+
+        <div class="result-padding">
+            <div class="result-grid-2">
+                <div class="result-stat-card">
+                    <label>Risk Level</label>
+                    <strong class="{{ result.class }}">{{ result.level }}</strong>
+                    <i class="fas fa-poll"></i>
+                </div>
+                <div class="result-stat-card">
+                    <label>Risk Score</label>
+                    <strong>{{ result.score }} <small>/ 100</small></strong>
+                    <i class="fas fa-poll"></i>
+                </div>
+            </div>
+
+            <div class="result-alert {{ result.class }}">
+                {% if result.class == 'level-very-high' or result.class == 'level-high' %}
+                    <strong>Elevated Risk Detected</strong>
+                    <p>The analysis indicates an elevated risk of heart disease. Please consult with a healthcare professional for proper evaluation and treatment.</p>
+                {% elif result.class == 'level-moderate' %}
+                    <strong>Moderate Risk Detected</strong>
+                    <p>The analysis indicates a moderate risk. Lifestyle modifications and follow-up with a healthcare professional are recommended.</p>
+                {% else %}
+                    <strong>Low Risk Detected</strong>
+                    <p>The analysis indicates a low risk. Continue to maintain a healthy lifestyle and schedule regular check-ups.</p>
+                {% endif %}
+            </div>
+
+
+            <h3>Patient Information Summary</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <label>Age</label>
+                    <span>{{ result.age }} years</span>
+                </div>
+                <div class="summary-item">
+                    <label>Gender</label>
+                    <span>{{ result.sex_str }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Max Heart Rate</label>
+                    <span>{{ result.max_heart_rate_achieved }} bpm</span>
+                </div>
+                <div class="summary-item">
+                    <label>Oldpeak (ST Depression)</label>
+                    <span>{{ result.st_depression }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Chest Pain Type</label>
+                    <span>{{ result.chest_pain_type_str }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>ST Slope</label>
+                    <span>{{ result.st_slope_str }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Exercise Induced Angina</label>
+                    <span>{{ result.exercise_induced_angina_str }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Major Vessels (ca)</label>
+                    <span>{{ result.num_major_vessels }}</span>
+                </div>
+                <div class="summary-item full-width">
+                    <label>Thalassemia</label>
+                    <span>{{ result.thalassemia_str }}</span>
+                </div>
+            </div>
+            <p class="summary-note">
+                <strong>Note:</strong> This summary shows the inputs used by the model. Fields like 'Blood Pressure' and 'Cholesterol' were not part of your confirmed final model features and are not shown.
+            </p>
+
+            <h3>Recommendations</h3>
+            <div class="recommendations-list">
+                <div class="rec-item"><span>1</span> Seek immediate consultation with a cardiologist</div>
+                <div class="rec-item"><span>2</span> Undergo comprehensive cardiac evaluation</div>
+                <div class="rec-item"><span>3</span> Start prescribed medications as directed</div>
+                <div class="rec-item"><span>4</span> Implement strict dietary modifications</div>
+                <div class="rec-item"><span>5</span> Monitor vital signs daily</div>
+                <div class="rec-item"><span>6</span> Avoid strenuous activities until cleared</div>
+            </div>
+
+            <div class="result-disclaimer">
+                <strong>Disclaimer:</strong> This prediction is for informational purposes only and should not be considered as medical advice. Always consult with qualified healthcare professionals for proper diagnosis and treatment.
+            </div>
+            
+            <a href="{{ url_for('predict') }}" class="btn btn-primary" style="margin-top: 2rem;">
+                <i class="fas fa-plus"></i> Start New Prediction
+            </a>
+        </div>
+
+    </div>
+
+    {% else %}
+    
+    <div class="page-header">
+        <div class="page-icon">
+            <i class="fas fa-file-medical"></i>
+        </div>
+        <h1>Heart Disease Prediction</h1>
+        <p class="subtitle">Enter patient information to assess cardiovascular risk.</p>
+    </div>
+
+    <form class="prediction-form" method="POST" action="{{ url_for('predict') }}">
+        <div class="form-container">
+            <div class="form-section">
+                <h3><i class="fas fa-user-circle"></i> Patient Information</h3>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="patient_name">Patient Name (Optional)</label>
+                        <input type="text" id="patient_name" name="patient_name" placeholder="Enter name">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age *</label>
+                        <input type="number" id="age" name="age" placeholder="e.g., 50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sex">Gender *</label>
+                        <select id="sex" name="sex" required>
+                            <option value="" disabled selected>Select gender</option>
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-heartbeat"></i> Clinical Parameters</h3>
+                
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="chest_pain_type">Chest Pain Type *</label>
+                        <select id="chest_pain_type" name="chest_pain_type" required>
+                            <option value="" disabled selected>Select type</option>
+                            <option value="0">Typical Angina</option>
+                            <option value="1">Atypical Angina</option>
+                            <option value="2">Non-anginal Pain</option>
+                            <option value="3">Asymptomatic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="max_heart_rate_achieved">Max Heart Rate Achieved *</label>
+                        <input type="number" id="max_heart_rate_achieved" name="max_heart_rate_achieved" placeholder="e.g., 150" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="st_depression">Oldpeak (ST Depression) *</label>
+                        <input type="number" step="0.1" id="st_depression" name="st_depression" placeholder="e.g., 1.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="st_slope">ST Slope *</label>
+                        <select id="st_slope" name="st_slope" required>
+                            <option value="" disabled selected>Select slope</option>
+                            <option value="0">Upsloping</option>
+                            <option value="1">Flat</option>
+                            <option value="2">Downsloping</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="num_major_vessels">Number of Major Vessels (ca) *</label>
+                        <select id="num_major_vessels" name="num_major_vessels" required>
+                            <option value="" disabled selected>Select count</option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                    <div class="form-group"> <label for="thalassemia">Thalassemia *</label>
+                        <select id="thalassemia" name="thalassemia" required>
+                            <option value="" disabled selected>Select status</option>
+                            <option value="1">Fixed Defect</option>
+                            <option value="2">Normal</option>
+                            <option value="3">Reversible Defect</option>
+                        </select>
+                    </div>
+                </div> <div class="form-group" style="margin-top: 1.5rem;">
+                    <label for="exercise_induced_angina">Exercise Induced Angina *</label>
+                    <select id="exercise_induced_angina" name="exercise_induced_angina" required>
+                            <option value="" disabled selected>Select option</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+                
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                <i class="fas fa-cogs"></i> Generate Prediction
+            </button>
+            <small class="form-note">All fields marked with * are required</small>
+        </div>
+    </form>
+
+    {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block title %}CardioPredict - Model Features{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div class="page-icon">
+            <i class="fas fa-book-medical"></i>
+        </div>
+        <h1>Model Feature Definitions</h1>
+        <p class="subtitle">Understanding the 9 clinical inputs used for prediction.</p>
+    </div>
+
+    <div class="about-grid">
+
+        <div class="about-item">
+            <label>Age</label>
+            <p>The patient's age in years.</p>
+        </div>
+
+        <div class="about-item">
+            <label>Sex (Gender)</label>
+            <p>The patient's biological sex.</p>
+            <ul>
+                <li><strong>1:</strong> Male</li>
+                <li><strong>0:</strong> Female</li>
+            </ul>
+        </div>
+        
+        <div class="about-item">
+            <label>Chest Pain Type (cp)</label>
+            <p>A classification of the patient's chest pain.</p>
+            <ul>
+                <li><strong>0 (Typical Angina):</strong> Chest pain related to reduced blood flow to the heart, typically induced by exertion.</li>
+                <li><strong>1 (Atypical Angina):</strong> Chest pain that is less typical of angina.</li>
+                <li><strong>2 (Non-anginal Pain):</strong> Chest pain not believed to be heart-related.</li>
+                <li><strong>3 (Asymptomatic):</strong> No chest pain reported.</li>
+            </ul>
+        </div>
+
+        <div class="about-item">
+            <label>Max Heart Rate Achieved (thalach)</label>
+            <p>The highest heart rate (in beats per minute) measured during an exercise stress test.</p>
+        </div>
+
+        <div class="about-item">
+            <label>Exercise Induced Angina (exang)</label>
+            <p>Whether the patient experienced chest pain during the exercise test.</p>
+            <ul>
+                <li><strong>1:</strong> Yes</li>
+                <li><strong>0:</strong> No</li>
+            </ul>
+        </div>
+
+        <div class="about-item">
+            <label>Oldpeak (ST Depression)</label>
+            <p>ST depression induced by exercise relative to rest. This is a key measurement from an EKG that indicates heart stress.</p>
+        </div>
+
+        <div class="about-item">
+            <label>ST Slope</label>
+            <p>The slope of the peak exercise ST segment on the EKG.</p>
+            <ul>
+                <li><strong>0 (Upsloping):</strong> ST segment is sloping upwards.</li>
+                <li><strong>1 (Flat):</strong> ST segment is horizontal (flat).</li>
+                <li><strong>2 (Downsloping):</strong> ST segment is sloping downwards.</li>
+            </ul>
+        </div>
+
+        <div class="about-item">
+            <label>Number of Major Vessels (ca)</label>
+            <p>The number of major coronary arteries (from 0 to 3) found to be narrowed or blocked, as identified by fluoroscopy (a type of X-ray).</p>
+        </div>
+
+        <div class="about-item">
+            <label>Thalassemia (thal)</label>
+            <p>Results from a thallium stress test, which measures blood flow to the heart muscle.</p>
+            <ul>
+                <li><strong>1 (Fixed Defect):</strong> A portion of the heart muscle shows no blood flow both at rest and after exercise (likely scar tissue).</li>
+                <li><strong>2 (Normal):</strong> Normal blood flow.</li>
+                <li><strong>3 (Reversible Defect):</strong> Reduced blood flow during exercise that becomes normal at rest (indicates a blockage).</li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

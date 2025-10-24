@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block title %}CardioPredict - History{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div class="page-icon">
+            <i class="fas fa-history"></i>
+        </div>
+        <h1>Prediction History</h1>
+        <p class="subtitle">View all past heart disease predictions</p>
+    </div>
+
+    <div class="history-list">
+        {% if predictions %}
+            {% for pred in predictions %}
+            <div class="history-card">
+                <div class="history-card-header">
+                    <div class="patient-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <strong>{{ pred.patient_name }}</strong>
+                            <small>{{ pred.timestamp.strftime('%b %d, %Y, %I:%M %p') }} &bull; {{ pred.age }} years &bull; {{ 'Male' if pred.sex == 1 else 'Female' }}</small>
+                        </div>
+                    </div>
+                    {% if pred.risk_level == 'Very High Risk' %}
+                        <span class="risk-badge risk-very-high">{{ pred.risk_level }}</span>
+                    {% elif pred.risk_level == 'High Risk' %}
+                        <span class="risk-badge risk-high">{{ pred.risk_level }}</span>
+                    {% elif pred.risk_level == 'Moderate Risk' %}
+                        <span class="risk-badge risk-moderate">{{ pred.risk_level }}</span>
+                    {% else %}
+                        <span class="risk-badge risk-low">{{ pred.risk_level }}</span>
+                    {% endif %}
+                </div>
+                <div class="history-card-body">
+                    <div class="stat-item">
+                        <span>Risk Score</span>
+                        <strong>{{ pred.risk_score }}/100</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Max Heart Rate</span>
+                        <strong>{{ pred.max_heart_rate_achieved }}</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>Chest Pain</span>
+                        <strong>
+                            {% if pred.chest_pain_type == 0 %}Typical Angina
+                            {% elif pred.chest_pain_type == 1 %}Atypical Angina
+                            {% elif pred.chest_pain_type == 2 %}Non-anginal
+                            {% else %}Asymptomatic
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <div class="stat-item">
+                        <span>ST Depression</span>
+                        <strong>{{ pred.st_depression }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-history">No predictions have been made yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
