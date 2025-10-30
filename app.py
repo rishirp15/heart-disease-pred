@@ -1,5 +1,6 @@
 import os
-import joblib
+# import joblib  ### <-- CHANGED (Removed joblib)
+import pickle  ### <-- CHANGED (Added pickle)
 import numpy as np
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -18,19 +19,32 @@ app.config['SECRET_KEY'] = '1234567890qwertyuiop'  # Change this to a random str
 
 db = SQLAlchemy(app)
 
-# --- Model Loading ---
+# --- Model & Scaler Loading --- ### <-- CHANGED SECTION
+model = None
+scaler = None ### <-- CHANGED
 
-# Load your pre-trained model
 model_path = os.path.join(basedir, 'model.sav')
+scaler_path = os.path.join(basedir, 'scaler.sav') ### <-- CHANGED
+
 try:
-    model = joblib.load(model_path)
+    # Use pickle to load the model you saved with pickle
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f) ### <-- CHANGED
     print("Model loaded successfully.")
-except FileNotFoundError:
-    print(f"Error: Model file not found at {model_path}")
+    
+    # Use pickle to load the scaler
+    with open(scaler_path, 'rb') as f: ### <-- CHANGED
+        scaler = pickle.load(f) ### <-- CHANGED
+    print("Scaler loaded successfully.") ### <-- CHANGED
+    
+except FileNotFoundError as e: ### <-- CHANGED
+    print(f"Error: Model or scaler file not found. {e}")
     model = None
+    scaler = None
 except Exception as e:
-    print(f"Error loading model: {e}")
+    print(f"Error loading model or scaler: {e}") ### <-- CHANGED
     model = None
+    scaler = None
 
 
 # --- Database Model ---
@@ -70,8 +84,9 @@ def predict():
     """Handles the prediction form submission."""
     
     if request.method == 'POST':
-        if not model:
-            flash('Model is not loaded. Cannot make predictions.', 'danger')
+        # Check if model AND scaler are loaded
+        if not model or not scaler: ### <-- CHANGED
+            flash('Model or Scaler is not loaded. Cannot make predictions.', 'danger') ### <-- CHANGED
             return render_template('predict.html', result=None)
             
         try:
@@ -110,33 +125,35 @@ def predict():
                 f_slope_upsloping, f_thal_normal, f_thal_reversible,
                 f_sex_male, f_exang_yes
             ]
-            final_features = np.array(features).reshape(1, -1)
             
-            if final_features.shape[1] != 13:
-                flash(f'Feature engineering error. Expected 13 features, got {final_features.shape[1]}', 'danger')
+            final_features_unscaled = np.array(features).reshape(1, -1) ### <-- CHANGED
+            
+            if final_features_unscaled.shape[1] != 13: ### <-- CHANGED
+                flash(f'Feature engineering error. Expected 13 features, got {final_features_unscaled.shape[1]}', 'danger')
                 return render_template('predict.html', result=None)
 
-            # 4. Make prediction
-            prediction_proba = model.predict_proba(final_features)[0][1]
+            # 4. *** APPLY THE SCALER *** ### <-- NEW STEP
+            final_features_scaled = scaler.transform(final_features_unscaled)
+
+            # 5. Make prediction (using the SCALED features)
+            prediction_proba = model.predict_proba(final_features_scaled)[0][1] ### <-- CHANGED
             risk_score = int(round(prediction_proba * 100))
 
-            # 5. Determine risk level
-            # --- THIS IS THE UPDATED PART ---
+            # 6. Determine risk level
             if risk_score > 75:
                 risk_level = 'Very High Risk'
-                risk_class = 'level-very-high' # Changed from risk-very-high
+                risk_class = 'level-very-high'
             elif risk_score > 50:
                 risk_level = 'High Risk'
-                risk_class = 'level-high' # Changed from risk-high
+                risk_class = 'level-high'
             elif risk_score > 25:
                 risk_level = 'Moderate Risk'
-                risk_class = 'level-moderate' # Changed from risk-moderate
+                risk_class = 'level-moderate'
             else:
                 risk_level = 'Low Risk'
-                risk_class = 'level-low' # Changed from risk-low
-            # --- END OF UPDATE ---
-
-            # 6. Save prediction
+                risk_class = 'level-low'
+            
+            # 7. Save prediction
             new_prediction = Prediction(
                 patient_name=patient_name,
                 age=age,
@@ -155,22 +172,18 @@ def predict():
             db.session.add(new_prediction)
             db.session.commit()
             
-            # 7. Prepare result dictionary for display
+            # 8. Prepare result dictionary for display
             result = {
                 'name': patient_name,
                 'score': risk_score,
                 'level': risk_level,
-                'class': risk_class, # This now sends 'level-high', etc.
-                
-                # Add raw data for the summary view
+                'class': risk_class, 
                 'age': age,
                 'sex_str': 'Male' if sex == 1 else 'Female',
                 'max_heart_rate_achieved': max_heart_rate_achieved,
                 'st_depression': st_depression,
                 'num_major_vessels': num_major_vessels,
                 'exercise_induced_angina_str': 'Yes' if exercise_induced_angina == 1 else 'No',
-                
-                # Translate coded values to strings
                 'chest_pain_type_str': {
                     0: 'Typical Angina',
                     1: 'Atypical Angina',
