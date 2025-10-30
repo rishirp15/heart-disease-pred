@@ -900,3 +900,5 @@ footer p {
 .about-prose li strong {
     color: var(--secondary-color);
 }
+.risk-positive { color: #d90429; }
+.risk-negative { color: #28a745; }

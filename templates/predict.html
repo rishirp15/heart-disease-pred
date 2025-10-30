@@ -1,6 +1,13 @@
 {% extends "layout.html" %}
 {% block title %}CardioPredict - Predict{% endblock %}
 
+{% block styles %}
+<style>
+    .risk-positive { color: #d90429; font-weight: bold; }
+    .risk-negative { color: #28a745; font-weight: bold; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
 
@@ -21,10 +28,30 @@
                 <div class="result-stat-card">
                     <label>Risk Score</label>
                     <strong>{{ result.score }} <small>/ 100</small></strong>
+                    <!-- 95% CONFIDENCE INTERVAL -->
+                    <small style="display:block; margin-top:4px; color:#666;">
+                        95% CI: {{ result.ci }}
+                    </small>
                     <i class="fas fa-poll"></i>
                 </div>
             </div>
 
+            <!-- TOP 3 RISK CONTRIBUTORS -->
+            <div style="margin: 1.5rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                <h4 style="margin: 0 0 0.75rem; color: #2c3e50;">Top 3 Risk Contributors</h4>
+                <ol style="margin: 0; padding-left: 1.5rem;">
+                    {% for name, val in result.drivers %}
+                    <li>
+                        <strong>{{ name }}</strong>: 
+                        <span class="risk-{{ 'positive' if val > 0 else 'negative' }}">
+                            {{ '+' if val > 0 else '' }}{{ val }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+
+            <!-- ALERT -->
             <div class="result-alert {{ result.class }}">
                 {% if result.class == 'level-very-high' or result.class == 'level-high' %}
                     <strong>Elevated Risk Detected</strong>
@@ -38,7 +65,7 @@
                 {% endif %}
             </div>
 
-
+            <!-- PATIENT SUMMARY -->
             <h3>Patient Information Summary</h3>
             <div class="summary-grid">
                 <div class="summary-item">
@@ -82,6 +109,7 @@
                 <strong>Note:</strong> This summary shows the inputs used by the model. Fields like 'Blood Pressure' and 'Cholesterol' were not part of your confirmed final model features and are not shown.
             </p>
 
+            <!-- RECOMMENDATIONS -->
             <h3>Recommendations</h3>
             <div class="recommendations-list">
                 <div class="rec-item"><span>1</span> Seek immediate consultation with a cardiologist</div>
@@ -100,11 +128,11 @@
                 <i class="fas fa-plus"></i> Start New Prediction
             </a>
         </div>
-
     </div>
 
     {% else %}
     
+    <!-- FORM -->
     <div class="page-header">
         <div class="page-icon">
             <i class="fas fa-file-medical"></i>
@@ -116,7 +144,7 @@
     <form class="prediction-form" method="POST" action="{{ url_for('predict') }}">
         <div class="form-container">
             <div class="form-section">
-                <h3><i class="fas fa-user-circle"></i> Patient Information</h3>
+                <h3>Patient Information</h3>
                 <div class="form-grid-2">
                     <div class="form-group">
                         <label for="patient_name">Patient Name (Optional)</label>
@@ -138,7 +166,7 @@
             </div>
 
             <div class="form-section">
-                <h3><i class="fas fa-heartbeat"></i> Clinical Parameters</h3>
+                <h3>Clinical Parameters</h3>
                 
                 <div class="form-grid-2">
                     <div class="form-group">
@@ -178,7 +206,8 @@
                             <option value="3">3</option>
                         </select>
                     </div>
-                    <div class="form-group"> <label for="thalassemia">Thalassemia *</label>
+                    <div class="form-group">
+                        <label for="thalassemia">Thalassemia *</label>
                         <select id="thalassemia" name="thalassemia" required>
                             <option value="" disabled selected>Select status</option>
                             <option value="1">Fixed Defect</option>
@@ -186,24 +215,24 @@
                             <option value="3">Reversible Defect</option>
                         </select>
                     </div>
-                </div> <div class="form-group" style="margin-top: 1.5rem;">
+                </div>
+                <div class="form-group" style="margin-top: 1.5rem;">
                     <label for="exercise_induced_angina">Exercise Induced Angina *</label>
                     <select id="exercise_induced_angina" name="exercise_induced_angina" required>
-                            <option value="" disabled selected>Select option</option>
+                        <option value="" disabled selected>Select option</option>
                         <option value="0">No</option>
                         <option value="1">Yes</option>
                     </select>
                 </div>
-                
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg btn-block">
-                <i class="fas fa-cogs"></i> Generate Prediction
+                Generate Prediction
             </button>
             <small class="form-note">All fields marked with * are required</small>
         </div>
     </form>
 
     {% endif %}
-    </div>
+</div>
 {% endblock %}
